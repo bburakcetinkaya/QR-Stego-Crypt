@@ -1,4 +1,4 @@
-close all; clc;
+close all; clear all; clc;
 
 javaaddpath('.\core.jar');
 javaaddpath('.\javase.jar');
@@ -14,8 +14,8 @@ cover = imread("Lenna.png");
 
 %----  QR CODES  ---------------------------------------------------
 
-% qr1 = encode_qr('www.google.com', [size(cover,1) size(cover,2)]);  qr1 = uint8(qr1);  %  birinci qr
-% qr2 = encode_qr('SECRET MESSAGE', [size(cover,1) size(cover,2)]);  qr2 = uint8(qr2);  % ikinci qr 
+qr1 = encode_qr('www.google.com', [size(cover,1) size(cover,2)]);  qr1 = uint8(qr1);  %  birinci qr
+qr2 = encode_qr('SECRET MESSAGE', [size(cover,1) size(cover,2)]);  qr2 = uint8(qr2);  % ikinci qr 
 
 figure;
        subplot(1,2,1);imshow(qr1);axis on; title("First QR Code");
@@ -35,9 +35,9 @@ rng(epoch,'twister');
 
 % user_key = key_gen('bu bir keydir', [size(cover(1)) size(cover(2))])
 
-keys.KEY1  = uint8(rand(size(cover,1), size(cover,2))); subplot(2,4,2); imshow(keys.KEY1.*255); axis on; title("KEY1");
-keys.KEY2 = uint8(rand(size(cover,1), size(cover,2)));  subplot(2,4,3); imshow(keys.KEY2.*255); axis on; title("KEY2");
-keys.KEY3 = uint8(rand(size(cover,1), size(cover,2)));  subplot(2,4,4); imshow(keys.KEY3.*255); axis on; title("KEY3");
+keys.KEY1  = uint8(rand(size(cover,1), size(cover,2))); subplot(2,4,2); imshow(KEY1.*255); axis on; title("KEY1");
+keys.KEY2 = uint8(rand(size(cover,1), size(cover,2)));  subplot(2,4,3); imshow(KEY2.*255); axis on; title("KEY2");
+keys.KEY3 = uint8(rand(size(cover,1), size(cover,2)));  subplot(2,4,4); imshow(KEY3.*255); axis on; title("KEY3");
 
 MASTERKEY = uint8(rand(size(cover,1), size(cover,2))); subplot(2,4,5); imshow(MASTERKEY.*255); axis on; title("MASTER KEY");
 
@@ -45,11 +45,11 @@ encQR2 = bitxor(qr2b,keys.KEY1);   subplot(2,4,6); imshow(encQR2.*255); axis on;
 encQR2 = bitxor(encQR2,keys.KEY2); subplot(2,4,7); imshow(encQR2.*255); axis on; title("Encrypted QR Image(Step 2)");
 encQR2 = bitxor(encQR2,keys.KEY3); subplot(2,4,8); imshow(encQR2.*255); axis on; title("Encrypted QR Image(Step 3)");
 
-enckeys = key_crypt_ops(keys,MASTERKEY);
+enckeys = key_encrypt(keys,MASTERKEY);
 
-% enckeys.KEY1 = bitxor(MASTERKEY,KEY1);
-% enckeys.KEY2 = bitxor(MASTERKEY,KEY2);
-% enckeys.KEY3 = bitxor(MASTERKEY,KEY3);
+enckeys.KEY1 = bitxor(MASTERKEY,KEY1);
+enckeys.KEY2 = bitxor(MASTERKEY,KEY2);
+enckeys.KEY3 = bitxor(MASTERKEY,KEY3);
 
 %----  STEGANOGRAPHY  ---------------------------------------------------------
     
@@ -70,17 +70,19 @@ rec_message = bitget(SI(:,:,3),1);
 
 %---- DECRYPTION ----------------------------------------------------------------------
 % key decryption
-deckeys = key_crypt_ops(enckeys,MASTERKEY);
+decKEY1 = bitxor(MASTERKEY,encKEY1);
+decKEY2 = bitxor(MASTERKEY,encKEY2);
+decKEY3 = bitxor(MASTERKEY,encKEY3);
 
 figure;
     subplot(2,3,1);imshow(SI);axis on; title("Stego Image");
     subplot(2,3,2);imshow(decoy_message.*255);axis on; title("Decoy message");
     subplot(2,3,3);imshow(rec_message.*255);axis on; title("Recovered message");
-   decQR2 = bitxor(rec_message,deckeys.KEY1); 
+   decQR2 = bitxor(rec_message,decKEY1); 
     subplot(2,3,4); imshow(decQR2.*255); axis on; title("Decryption Process(Step 1)");
-   decQR2 = bitxor(decQR2,deckeys.KEY2);      
+   decQR2 = bitxor(decQR2,decKEY2);      
     subplot(2,3,5); imshow(decQR2.*255); axis on; title("Decryption Process(Step 2)");
-   decQR2 = bitxor(decQR2,deckeys.KEY3);      
+   decQR2 = bitxor(decQR2,decKEY3);      
     subplot(2,3,6); imshow(decQR2.*255); axis on; title("Decrypted QR Image");
 
 % figure;
